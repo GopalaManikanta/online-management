@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
+  BookOpen,
   GraduationCap,
   LogOut,
   X
@@ -14,6 +15,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Courses', path: '/courses', icon: BookOpen },
   ];
 
   const handleLogout = () => {

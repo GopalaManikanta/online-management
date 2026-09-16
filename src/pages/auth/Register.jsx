@@ -43,43 +43,48 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
-        {/* Left Branding Card */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-[#0F172A] via-[#1E1B4B] to-[#312E81] p-8 lg:p-12 text-white flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 -translate-x-12 -translate-y-12 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 right-0 translate-x-12 translate-y-12 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
+        {/* Left Branding Card with Sky Blue Theme */}
+        <div className="lg:col-span-5 relative p-8 lg:p-12 text-white flex flex-col justify-between overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&auto=format&fit=crop&q=80"
+            alt="EduSync Education Background"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-600/90 via-sky-500/90 to-blue-700/95 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-sky-500/40 backdrop-blur-[1px]" />
 
           {/* Logo Header */}
           <div className="flex items-center gap-3 z-10">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <GraduationCap className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white text-sky-600 flex items-center justify-center shadow-md">
+              <GraduationCap className="w-6 h-6" />
             </div>
-            <span className="text-2xl font-bold tracking-tight">EduSync</span>
+            <span className="text-2xl font-bold tracking-tight text-white">EduSync</span>
           </div>
 
           <div className="my-8 z-10 space-y-4">
-            <h1 className="text-3xl lg:text-4xl font-extrabold leading-tight">
+            <h1 className="text-3xl lg:text-4xl font-extrabold leading-tight text-white drop-shadow-xs">
               Start Your Learning Journey Today
             </h1>
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Create an account to gain access to interactive courses, track your learning progress, and earn industry-recognized certificates.
+            <p className="text-sky-100 text-sm leading-relaxed">
+              Create an account to gain access to interactive courses, track your learning progress, and earn completion certificates.
             </p>
 
-            <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10 space-y-2 mt-6">
-              <div className="flex items-center gap-2 text-indigo-300 text-sm font-semibold">
-                <ShieldCheck className="w-5 h-5" />
+            <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-md border border-white/20 space-y-2 mt-6">
+              <div className="flex items-center gap-2 text-white text-sm font-semibold">
+                <ShieldCheck className="w-5 h-5 text-yellow-300" />
                 <span>Why Join EduSync?</span>
               </div>
-              <ul className="text-xs text-slate-300 space-y-1.5 pl-7 list-disc">
-                <li>Over 24+ professional interactive courses</li>
-                <li>Live progress analytics & assignment submissions</li>
+              <ul className="text-xs text-sky-100 space-y-1.5 pl-7 list-disc">
+                <li>Professional interactive course modules</li>
+                <li>Live progress analytics & management</li>
                 <li>Connect directly with expert instructors</li>
               </ul>
             </div>
           </div>
 
-          <div className="z-10 text-xs text-slate-400">
+          <div className="z-10 text-xs text-sky-100">
             © {new Date().getFullYear()} EduSync LMS. All rights reserved.
           </div>
         </div>
@@ -109,7 +114,7 @@ const Register = () => {
                     placeholder="e.g. Rahul Sharma"
                     {...register('name', { required: 'Full name is required' })}
                     className={`w-full pl-11 pr-4 py-3 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all ${
-                      errors.name ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20'
+                      errors.name ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-sky-500/20 focus:border-sky-500'
                     }`}
                   />
                 </div>
@@ -134,7 +139,7 @@ const Register = () => {
                       },
                     })}
                     className={`w-full pl-11 pr-4 py-3 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all ${
-                      errors.email ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20'
+                      errors.email ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-sky-500/20 focus:border-sky-500'
                     }`}
                   />
                 </div>
@@ -148,7 +153,7 @@ const Register = () => {
                 </label>
                 <select
                   {...register('role')}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition"
                 >
                   <option value="Student">Student</option>
                   <option value="Instructor">Instructor</option>
@@ -171,7 +176,7 @@ const Register = () => {
                       minLength: { value: 6, message: 'Minimum 6 characters required' },
                     })}
                     className={`w-full pl-11 pr-11 py-3 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all ${
-                      errors.password ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20'
+                      errors.password ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-sky-500/20 focus:border-sky-500'
                     }`}
                   />
                   <button
@@ -200,7 +205,7 @@ const Register = () => {
                       validate: (value) => value === passwordValue || 'Passwords do not match',
                     })}
                     className={`w-full pl-11 pr-11 py-3 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all ${
-                      errors.confirmPassword ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20'
+                      errors.confirmPassword ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-sky-500/20 focus:border-sky-500'
                     }`}
                   />
                   <button
@@ -224,10 +229,10 @@ const Register = () => {
                     {...register('agreeTerms', {
                       required: 'You must accept the terms to continue',
                     })}
-                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-sky-500 focus:ring-sky-500 cursor-pointer"
                   />
                   <span className="text-xs text-slate-600 leading-tight">
-                    I agree to the <a href="#terms" className="text-indigo-600 font-semibold underline">Terms of Service</a> and <a href="#privacy" className="text-indigo-600 font-semibold underline">Privacy Policy</a>.
+                    I agree to the <a href="#terms" className="text-sky-600 font-semibold underline">Terms of Service</a> and <a href="#privacy" className="text-sky-600 font-semibold underline">Privacy Policy</a>.
                   </span>
                 </label>
                 {errors.agreeTerms && (
@@ -239,7 +244,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-200 disabled:opacity-50"
+                className="w-full py-3.5 px-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl shadow-md shadow-sky-500/25 transition-all duration-200 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
@@ -247,7 +252,7 @@ const Register = () => {
 
             <div className="text-center text-xs text-slate-500">
               Already have an account?{' '}
-              <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-800 transition">
+              <Link to="/login" className="font-bold text-sky-600 hover:text-sky-800 transition">
                 Sign In
               </Link>
             </div>
