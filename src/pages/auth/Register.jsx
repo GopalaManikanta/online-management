@@ -33,8 +33,10 @@ const Register = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      await registerUser(data);
-      // No dashboard redirection - only toast message will appear
+      const res = await registerUser(data);
+      if (res.success) {
+        navigate('/dashboard');
+      }
     } finally {
       setLoading(false);
     }

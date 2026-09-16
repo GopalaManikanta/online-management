@@ -30,11 +30,11 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 sm:p-10 space-y-6">
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-3xl shadow-xl p-8 sm:p-10 space-y-6">
         <div className="flex flex-col items-center text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <GraduationCap className="w-7 h-7 text-white" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+            <GraduationCap className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900">Forgot Password?</h2>
           <p className="text-sm text-slate-500 leading-relaxed">
@@ -46,17 +46,17 @@ const ForgotPassword = () => {
 
         {submitted ? (
           <div className="space-y-6">
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-emerald-900 space-y-1">
+            <div className="p-4 rounded-2xl bg-sky-50 border border-sky-100 flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-sky-900 space-y-1">
                 <p className="font-semibold">Reset Link Sent!</p>
-                <p>Check your inbox (and spam folder) for the password reset confirmation email.</p>
+                <p>Check your inbox (and spam folder) for password reset confirmation.</p>
               </div>
             </div>
 
             <Link
               to="/login"
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition"
+              className="w-full py-3.5 px-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 shadow-md shadow-sky-500/25 transition"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Sign In</span>
@@ -81,7 +81,9 @@ const ForgotPassword = () => {
                     },
                   })}
                   className={`w-full pl-11 pr-4 py-3 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all ${
-                    errors.email ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-600'
+                    errors.email
+                      ? 'border-red-500 focus:ring-red-500/20'
+                      : 'border-slate-200 focus:ring-sky-500/20 focus:border-sky-500'
                   }`}
                 />
               </div>
@@ -93,7 +95,7 @@ const ForgotPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-200 disabled:opacity-50"
+              className="w-full py-3.5 px-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl shadow-md shadow-sky-500/25 transition-all duration-200 disabled:opacity-50"
             >
               {loading ? 'Sending Request...' : 'Send Reset Link'}
             </button>
@@ -101,7 +103,7 @@ const ForgotPassword = () => {
             <div className="text-center pt-2">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-sky-600 hover:text-sky-800 transition"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Return to Sign In</span>
