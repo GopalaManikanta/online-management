@@ -13,6 +13,7 @@ import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import Dashboard from './pages/dashboard/Dashboard';
 import CoursesList from './pages/courses/CoursesList';
+import StudentsList from './pages/students/StudentsList';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -33,7 +34,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* Module 2 & 3 Protected Routes */}
+            {/* Protected Routes */}
             <Route
               element={
                 <ProtectedRoute>
@@ -43,6 +44,7 @@ function App() {
             >
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/courses" element={<CoursesList />} />
+              <Route path="/students" element={<StudentsList />} />
             </Route>
 
             {/* Catch-All Fallback */}

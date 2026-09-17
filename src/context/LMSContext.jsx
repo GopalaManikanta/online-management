@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchCoursesFromAPI, INITIAL_COURSES } from '../services/api';
+import { fetchCoursesFromAPI, fetchStudentsFromAPI, INITIAL_COURSES } from '../services/api';
 import { toast } from 'react-toastify';
 
 const LMSContext = createContext();
@@ -23,6 +23,19 @@ export const LMSProvider = ({ children }) => {
     return INITIAL_COURSES;
   });
 
+  const [students, setStudents] = useState(() => {
+    const saved = localStorage.getItem('edusync_students');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error('Error parsing students from local storage', e);
+      }
+    }
+    return [];
+  });
+
   const [activities, setActivities] = useState(() => {
     const saved = localStorage.getItem('edusync_activities');
     if (saved) {
@@ -37,7 +50,7 @@ export const LMSProvider = ({ children }) => {
       {
         id: 'act_1',
         action: 'System Initialized',
-        detail: 'Course Management API loaded',
+        detail: 'Course & Student Management Modules loaded',
         time: 'Just now',
         date: new Date().toLocaleDateString(),
       },
@@ -47,13 +60,7 @@ export const LMSProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Clear any leftover student/instructor cache from previous tests
-  useEffect(() => {
-    localStorage.removeItem('edusync_students');
-    localStorage.removeItem('edusync_instructors');
-  }, []);
-
-  // Fetch initial courses from API if empty
+  // Fetch initial courses from DummyJSON API if empty
   useEffect(() => {
     const loadCourses = async () => {
       if (courses.length === 0) {
@@ -76,11 +83,36 @@ export const LMSProvider = ({ children }) => {
     loadCourses();
   }, []);
 
+  // Fetch initial students from DummyJSON API if empty
+  useEffect(() => {
+    const loadStudents = async () => {
+      const saved = localStorage.getItem('edusync_students');
+      if (!saved || students.length === 0) {
+        try {
+          const apiStudents = await fetchStudentsFromAPI();
+          if (apiStudents && apiStudents.length > 0) {
+            setStudents(apiStudents);
+            localStorage.setItem('edusync_students', JSON.stringify(apiStudents));
+          }
+        } catch (err) {
+          console.error('Failed to fetch students from DummyJSON API', err);
+        }
+      }
+    };
+    loadStudents();
+  }, []);
+
   useEffect(() => {
     if (courses.length > 0) {
       localStorage.setItem('edusync_courses', JSON.stringify(courses));
     }
   }, [courses]);
+
+  useEffect(() => {
+    if (students.length > 0) {
+      localStorage.setItem('edusync_students', JSON.stringify(students));
+    }
+  }, [students]);
 
   useEffect(() => {
     localStorage.setItem('edusync_activities', JSON.stringify(activities));
@@ -97,7 +129,7 @@ export const LMSProvider = ({ children }) => {
     setActivities((prev) => [newAct, ...prev].slice(0, 20));
   };
 
-  // Add Course (Primary working Quick Action)
+  // Course CRUD Functions
   const addCourse = (courseData) => {
     const newCourse = {
       id: `c_${Date.now()}`,
@@ -134,11 +166,46 @@ export const LMSProvider = ({ children }) => {
     toast.info(`Course "${target?.title || 'Selected Course'}" deleted.`);
   };
 
+  // Student CRUD Functions
+  const addStudent = (studentData) => {
+    const newStudent = {
+      id: `s_${Date.now()}`,
+      name: studentData.name,
+      email: studentData.email,
+      phone: studentData.phone,
+      address: studentData.address,
+      qualification: studentData.qualification,
+      enrollmentDate: studentData.enrollmentDate || new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = [newStudent, ...students];
+    setStudents(updated);
+    addActivity('New Student Added', `Registered student "${newStudent.name}"`);
+    toast.success(`Student "${studentData.name}" added successfully!`);
+    return newStudent;
+  };
+
+  const updateStudent = (id, updatedData) => {
+    const updated = students.map((s) => (s.id === id ? { ...s, ...updatedData } : s));
+    setStudents(updated);
+    addActivity('Student Updated', `Updated details for student "${updatedData.name || id}"`);
+    toast.success('Student details updated successfully!');
+  };
+
+  const deleteStudent = (id) => {
+    const target = students.find((s) => s.id === id);
+    const updated = students.filter((s) => s.id !== id);
+    setStudents(updated);
+    addActivity('Student Deleted', `Removed student "${target?.name || id}"`);
+    toast.info(`Student "${target?.name || 'Selected Student'}" deleted.`);
+  };
+
   return (
     <LMSContext.Provider
       value={{
         courses,
-        students: [],
+        students,
         instructors: [],
         activities,
         loading,
@@ -146,12 +213,15 @@ export const LMSProvider = ({ children }) => {
         addCourse,
         updateCourse,
         deleteCourse,
+        addStudent,
+        updateStudent,
+        deleteStudent,
         addActivity,
         stats: {
           totalCourses: courses.length,
-          totalStudents: 0,
+          totalStudents: students.length,
           totalInstructors: 0,
-          totalEnrollments: 0,
+          totalEnrollments: students.length,
           completedCourses: 0,
         },
       }}

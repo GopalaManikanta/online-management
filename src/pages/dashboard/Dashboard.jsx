@@ -22,7 +22,7 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { activities, stats, addCourse } = useLMS();
+  const { students, activities, stats, addCourse } = useLMS();
   const navigate = useNavigate();
 
   // Quick Action Modal State
@@ -61,7 +61,7 @@ const Dashboard = () => {
     setIsAddCourseModalOpen(false);
   };
 
-  // 5 Metric Cards (Total Courses shows active count, others show 0)
+  // 5 Metric Cards (Total Courses & Total Students show real live count)
   const kpiCards = [
     {
       id: 'total-courses',
@@ -73,7 +73,7 @@ const Dashboard = () => {
     {
       id: 'total-students',
       title: 'Total Students',
-      value: 0,
+      value: stats.totalStudents,
       icon: Users,
       bgColor: 'bg-sky-50 text-sky-600',
     },
@@ -87,7 +87,7 @@ const Dashboard = () => {
     {
       id: 'enrolled-courses',
       title: 'Enrolled Courses',
-      value: 0,
+      value: stats.totalEnrollments,
       icon: BookmarkCheck,
       bgColor: 'bg-sky-50 text-sky-600',
     },
@@ -100,7 +100,7 @@ const Dashboard = () => {
     },
   ];
 
-  // 4 Quick Action Cards (Add New Course is ACTIVE and OPENS MODAL; others do nothing)
+  // 4 Quick Action Cards (Add New Course & Manage Students navigate/open modals)
   const quickActionCards = [
     {
       id: 'add-course',
@@ -113,12 +113,12 @@ const Dashboard = () => {
     },
     {
       id: 'enroll-student',
-      title: 'Enroll Student',
-      desc: 'Register a new student to a course',
+      title: 'Student Directory',
+      desc: 'Register and manage student profiles',
       icon: UserPlus,
       bgColor: 'bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
-      action: () => {}, 
-      active: false,
+      action: () => navigate('/students'),
+      active: true,
     },
     {
       id: 'add-instructor',
@@ -135,7 +135,7 @@ const Dashboard = () => {
       desc: 'Generate & inspect summary report',
       icon: FileText,
       bgColor: 'bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
-      action: () => {}, 
+      action: () => {},
       active: false,
     },
   ];
@@ -194,7 +194,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 4 Quick Action Cards (Add New Course is WORKING and OPENS MODAL) */}
+      {/* 4 Quick Action Cards */}
       <div className="space-y-3">
         <h2 className="text-lg font-bold text-slate-900">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -237,14 +237,31 @@ const Dashboard = () => {
                 <h2 className="text-lg font-bold text-slate-900">Enrolled Courses Progress</h2>
               </div>
               <span className="text-xs font-semibold text-sky-600 font-mono bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
-                0 Courses Enrolled
+                {students.length} Enrolled
               </span>
             </div>
 
-            <div className="p-8 text-center text-slate-400 space-y-2">
-              <Inbox className="w-8 h-8 mx-auto text-sky-300" />
-              <p className="text-xs font-semibold text-slate-500">No active enrolled courses (Count: 0)</p>
-            </div>
+            {students.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 space-y-2">
+                <Inbox className="w-8 h-8 mx-auto text-sky-300" />
+                <p className="text-xs font-semibold text-slate-500">No active enrolled courses (Count: 0)</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {students.slice(0, 4).map((st) => (
+                  <div key={st.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">{st.name}</span>
+                      <span className="text-sky-600 font-semibold">{st.qualification}</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500">Enrolled: {st.enrollmentDate}</div>
+                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-sky-500 h-1.5 rounded-full w-1/3"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Upcoming Classes Section */}
@@ -306,18 +323,44 @@ const Dashboard = () => {
                 <Users className="w-5 h-5 text-sky-600" />
                 <h2 className="text-lg font-bold text-slate-900">Recent Students</h2>
               </div>
-              <span className="text-xs font-semibold text-sky-600 font-mono">0 Enrolled</span>
+              <button
+                onClick={() => navigate('/students')}
+                className="text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer"
+              >
+                <span>View All ({students.length})</span>
+              </button>
             </div>
 
-            <div className="p-8 text-center text-slate-400 space-y-2">
-              <Users className="w-8 h-8 mx-auto text-sky-300" />
-              <p className="text-xs font-semibold text-slate-500">No recent enrolled students (Count: 0)</p>
-            </div>
+            {students.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 space-y-2">
+                <Users className="w-8 h-8 mx-auto text-sky-300" />
+                <p className="text-xs font-semibold text-slate-500">No recent enrolled students (Count: 0)</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {students.slice(0, 5).map((st) => (
+                  <div key={st.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-sky-500 text-white font-bold flex items-center justify-center text-xs">
+                        {st.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-800 truncate max-w-[120px]">{st.name}</p>
+                        <p className="text-[11px] text-slate-500 truncate max-w-[130px]">{st.email}</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-700 font-semibold text-[10px]">
+                      {st.qualification}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Working Add New Course Modal (Opens when Add New Course Quick Action is clicked) */}
+      {/* Working Add New Course Modal */}
       {isAddCourseModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xl p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">

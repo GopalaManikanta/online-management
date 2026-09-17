@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   BookOpen,
+  Users,
   GraduationCap,
   LogOut,
   X
@@ -16,6 +17,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Courses', path: '/courses', icon: BookOpen },
+    { name: 'Students', path: '/students', icon: Users },
   ];
 
   const handleLogout = () => {

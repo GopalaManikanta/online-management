@@ -119,7 +119,7 @@ export const INITIAL_COURSES = [
   }
 ];
 
-// Third-Party API Call: Fetch Courses with Axios
+// Third-Party API Call: Fetch Courses with Axios from DummyJSON (/posts)
 export const fetchCoursesFromAPI = async () => {
   try {
     const response = await api.get('/posts?limit=8');
@@ -144,6 +144,39 @@ export const fetchCoursesFromAPI = async () => {
   } catch (error) {
     console.warn('Axios API fallback to initial courses:', error.message);
     return INITIAL_COURSES;
+  }
+};
+
+// Third-Party API Call: Fetch Students from DummyJSON (/users) using Axios
+export const fetchStudentsFromAPI = async () => {
+  try {
+    const response = await api.get('/users?limit=10');
+    const qualifications = ['B.Tech / B.E.', 'MCA / M.Sc', 'Degree (B.Sc / B.Com / B.A)', 'Diploma', 'M.Tech / Ph.D'];
+
+    if (response.data && response.data.users && response.data.users.length > 0) {
+      return response.data.users.map((u, idx) => {
+        const rawPhone = (u.phone || '').replace(/[^0-9]/g, '');
+        const phone = rawPhone.length >= 10 ? rawPhone.slice(0, 10) : `987654321${idx % 10}`;
+        const addressStr = u.address
+          ? `${u.address.address}, ${u.address.city}, ${u.address.state}`
+          : 'Jubilee Hills, Hyderabad, Telangana';
+
+        return {
+          id: `dj_student_${u.id}`,
+          name: `${u.firstName} ${u.lastName}`,
+          email: u.email,
+          phone: phone,
+          address: addressStr,
+          qualification: u.university || qualifications[idx % qualifications.length],
+          enrollmentDate: `2026-0${(idx % 3) + 1}-15`,
+          createdAt: new Date().toISOString(),
+        };
+      });
+    }
+    return [];
+  } catch (error) {
+    console.warn('Axios DummyJSON API fallback for students:', error.message);
+    return [];
   }
 };
 
