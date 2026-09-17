@@ -18,9 +18,7 @@ import {
   Loader2,
   AlertCircle,
   AlertTriangle,
-  Sparkles,
-  Tag,
-  DollarSign
+  Sparkles
 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 6;

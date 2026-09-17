@@ -5,6 +5,7 @@ import {
   BookOpen,
   Users,
   GraduationCap,
+  BookmarkCheck,
   LogOut,
   X
 } from 'lucide-react';
@@ -18,6 +19,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Courses', path: '/courses', icon: BookOpen },
     { name: 'Students', path: '/students', icon: Users },
+    { name: 'Enrollments', path: '/enrollments', icon: BookmarkCheck },
   ];
 
   const handleLogout = () => {

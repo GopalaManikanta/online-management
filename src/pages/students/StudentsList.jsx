@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import {
   Plus,
   Search,
-  User,
   Mail,
   Phone,
   MapPin,

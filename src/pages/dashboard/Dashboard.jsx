@@ -22,7 +22,7 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { students, activities, stats, addCourse } = useLMS();
+  const { students, enrollments, activities, stats, addCourse } = useLMS();
   const navigate = useNavigate();
 
   // Quick Action Modal State
@@ -61,7 +61,7 @@ const Dashboard = () => {
     setIsAddCourseModalOpen(false);
   };
 
-  // 5 Metric Cards (Total Courses & Total Students show real live count)
+  // 5 Metric Cards (Total Courses, Students & Enrollments show real live count)
   const kpiCards = [
     {
       id: 'total-courses',
@@ -94,13 +94,13 @@ const Dashboard = () => {
     {
       id: 'completed-courses',
       title: 'Completed Courses',
-      value: 0,
+      value: stats.completedCourses,
       icon: CheckCircle2,
       bgColor: 'bg-sky-50 text-sky-600',
     },
   ];
 
-  // 4 Quick Action Cards (Add New Course & Manage Students navigate/open modals)
+  // 4 Quick Action Cards
   const quickActionCards = [
     {
       id: 'add-course',
@@ -113,21 +113,21 @@ const Dashboard = () => {
     },
     {
       id: 'enroll-student',
+      title: 'Course Enrollments',
+      desc: 'Enroll students and manage subscriptions',
+      icon: BookmarkCheck,
+      bgColor: 'bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
+      action: () => navigate('/enrollments'),
+      active: true,
+    },
+    {
+      id: 'student-directory',
       title: 'Student Directory',
       desc: 'Register and manage student profiles',
       icon: UserPlus,
       bgColor: 'bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
       action: () => navigate('/students'),
       active: true,
-    },
-    {
-      id: 'add-instructor',
-      title: 'Add Instructor',
-      desc: 'Register new faculty or instructor',
-      icon: GraduationCap,
-      bgColor: 'bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
-      action: () => {},
-      active: false,
     },
     {
       id: 'view-reports',
@@ -234,32 +234,64 @@ const Dashboard = () => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-sky-600" />
-                <h2 className="text-lg font-bold text-slate-900">Enrolled Courses Progress</h2>
+                <h2 className="text-lg font-bold text-slate-900">Recent Course Enrollments</h2>
               </div>
-              <span className="text-xs font-semibold text-sky-600 font-mono bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
-                {students.length} Enrolled
-              </span>
+              <button
+                onClick={() => navigate('/enrollments')}
+                className="text-xs font-semibold text-sky-600 hover:text-sky-700 font-mono bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 cursor-pointer"
+              >
+                {enrollments.length} Total Records
+              </button>
             </div>
 
-            {students.length === 0 ? (
+            {enrollments.length === 0 ? (
               <div className="p-8 text-center text-slate-400 space-y-2">
                 <Inbox className="w-8 h-8 mx-auto text-sky-300" />
-                <p className="text-xs font-semibold text-slate-500">No active enrolled courses (Count: 0)</p>
+                <p className="text-xs font-semibold text-slate-500">No course enrollments found (Count: 0)</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {students.slice(0, 4).map((st) => (
-                  <div key={st.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">{st.name}</span>
-                      <span className="text-sky-600 font-semibold">{st.qualification}</span>
+                {enrollments.slice(0, 4).map((enr) => {
+                  const progressPct = enr.progress !== undefined ? enr.progress : (enr.status === 'Completed' ? 100 : 45);
+                  return (
+                    <div key={enr.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900">{enr.studentName}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            enr.status === 'Completed'
+                              ? 'bg-sky-100 text-sky-700'
+                              : enr.status === 'Pending'
+                              ? 'bg-amber-100 text-amber-700'
+                              : enr.status === 'Cancelled'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-emerald-100 text-emerald-700'
+                          }`}
+                        >
+                          {enr.status || 'Active'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Course: <strong className="text-slate-700">{enr.courseTitle}</strong></span>
+                        <span>Progress: <strong className="text-sky-600">{progressPct}%</strong></span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-1.5 rounded-full ${
+                            enr.status === 'Completed'
+                              ? 'bg-sky-500'
+                              : enr.status === 'Pending'
+                              ? 'bg-amber-500'
+                              : enr.status === 'Cancelled'
+                              ? 'bg-red-500'
+                              : 'bg-emerald-500'
+                          }`}
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="text-[11px] text-slate-500">Enrolled: {st.enrollmentDate}</div>
-                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-sky-500 h-1.5 rounded-full w-1/3"></div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
