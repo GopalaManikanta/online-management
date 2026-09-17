@@ -8,7 +8,8 @@ import {
   BookmarkCheck,
   LogOut,
   X,
-  UserCheck
+  UserCheck,
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -27,6 +28,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
         { name: 'Courses', path: '/courses', icon: BookOpen },
         { name: 'Students', path: '/students', icon: Users },
+        { name: 'Learning Progress', path: '/progress', icon: TrendingUp },
         { name: 'Enrollments', path: '/enrollments', icon: BookmarkCheck },
         { name: 'Instructors', path: '/instructors', icon: GraduationCap },
       ];

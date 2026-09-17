@@ -19,7 +19,7 @@ const DEFAULT_USERS = [
     email: 'admin@edusync.com',
     password: 'admin123',
     role: 'Admin',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     createdAt: new Date().toISOString(),
   },
   {
@@ -40,13 +40,20 @@ export const AuthProvider = ({ children }) => {
     if (localUsers) {
       try {
         const parsed = JSON.parse(localUsers);
+        // Update admin avatar if old avatar present
+        const updatedUsers = parsed.map((u) =>
+          u.role === 'Admin' || u.email === 'admin@edusync.com'
+            ? { ...u, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' }
+            : u
+        );
         // Ensure Gopala Manikanta exists in stored users
-        if (!parsed.some((u) => u.name?.toLowerCase().includes('manikanta'))) {
-          const updated = [DEFAULT_USERS[0], ...parsed];
+        if (!updatedUsers.some((u) => u.name?.toLowerCase().includes('manikanta'))) {
+          const updated = [DEFAULT_USERS[0], ...updatedUsers];
           localStorage.setItem('edusync_users', JSON.stringify(updated));
           return updated;
         }
-        return parsed;
+        localStorage.setItem('edusync_users', JSON.stringify(updatedUsers));
+        return updatedUsers;
       } catch (e) {
         console.error('Failed to parse local users', e);
       }
@@ -61,6 +68,11 @@ export const AuthProvider = ({ children }) => {
     if (session) {
       try {
         const parsed = JSON.parse(session);
+        if (parsed.role === 'Admin' || parsed.email === 'admin@edusync.com') {
+          const updatedAdmin = { ...parsed, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' };
+          localStorage.setItem('edusync_session', JSON.stringify(updatedAdmin));
+          return updatedAdmin;
+        }
         // If session was Rahul or missing Manikanta, upgrade session to Gopala Manikanta
         if (parsed.name === 'Rahul Sharma') {
           const manikantaSession = {

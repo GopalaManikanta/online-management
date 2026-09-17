@@ -20,12 +20,34 @@ export const COURSE_IMAGES = [
   'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80'
 ];
 
+export const FACULTY_AVATARS = [
+  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&auto=format&fit=crop&q=80',
+];
+
+export const getFacultyAvatar = (nameStr = '') => {
+  if (!nameStr) return FACULTY_AVATARS[0];
+  let sum = 0;
+  for (let i = 0; i < nameStr.length; i++) {
+    sum += nameStr.charCodeAt(i);
+  }
+  return FACULTY_AVATARS[sum % FACULTY_AVATARS.length];
+};
+
 export const INITIAL_COURSES = [
   {
     id: 'c1',
     thumbnail: COURSE_IMAGES[0],
     title: 'React JS Masterclass',
-    instructor: 'John Smith',
+    instructor: 'Dr. Sarah Johnson',
     category: 'React',
     duration: '6 Weeks',
     level: 'Beginner',
@@ -37,7 +59,7 @@ export const INITIAL_COURSES = [
     id: 'c2',
     thumbnail: COURSE_IMAGES[1],
     title: 'JavaScript Essentials',
-    instructor: 'Sarah Johnson',
+    instructor: 'Prof. Mike Davis',
     category: 'JavaScript',
     duration: '8 Weeks',
     level: 'Intermediate',
@@ -49,7 +71,7 @@ export const INITIAL_COURSES = [
     id: 'c3',
     thumbnail: COURSE_IMAGES[2],
     title: 'Node.js Development',
-    instructor: 'Mike Davis',
+    instructor: 'Prof. Mike Davis',
     category: 'Node.js',
     duration: '6 Weeks',
     level: 'Advanced',
@@ -73,7 +95,7 @@ export const INITIAL_COURSES = [
     id: 'c5',
     thumbnail: COURSE_IMAGES[4],
     title: 'Python Programming',
-    instructor: 'Emily Wilson',
+    instructor: 'Alex Turner',
     category: 'Python',
     duration: '10 Weeks',
     level: 'Beginner',
@@ -85,7 +107,7 @@ export const INITIAL_COURSES = [
     id: 'c6',
     thumbnail: COURSE_IMAGES[5],
     title: 'Data Science',
-    instructor: 'David Lee',
+    instructor: 'Alex Turner',
     category: 'Data Science',
     duration: '12 Weeks',
     level: 'Advanced',
@@ -97,7 +119,7 @@ export const INITIAL_COURSES = [
     id: 'c7',
     thumbnail: COURSE_IMAGES[6],
     title: 'Full Stack Web Development',
-    instructor: 'Alex Turner',
+    instructor: 'Dr. Sarah Johnson',
     category: 'React',
     duration: '14 Weeks',
     level: 'Intermediate',
@@ -109,7 +131,7 @@ export const INITIAL_COURSES = [
     id: 'c8',
     thumbnail: COURSE_IMAGES[7],
     title: 'Tailwind CSS & Responsive Design',
-    instructor: 'Jessica Alba',
+    instructor: 'Emily Carter',
     category: 'UI/UX Design',
     duration: '4 Weeks',
     level: 'Beginner',
@@ -124,7 +146,7 @@ export const fetchCoursesFromAPI = async () => {
   try {
     const response = await api.get('/posts?limit=8');
     const categories = ['React', 'JavaScript', 'Node.js', 'UI/UX Design', 'Python', 'Data Science'];
-    const instructors = ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Emily Carter', 'Emily Wilson', 'David Lee', 'Alex Turner', 'Jessica Alba'];
+    const instructors = ['Dr. Sarah Johnson', 'Prof. Mike Davis', 'Alex Turner', 'Emily Carter'];
 
     if (response.data && response.data.posts) {
       return response.data.posts.map((post, idx) => ({

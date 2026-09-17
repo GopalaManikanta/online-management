@@ -17,6 +17,7 @@ import StudentsList from './pages/students/StudentsList';
 import EnrollmentsList from './pages/enrollments/EnrollmentsList';
 import InstructorsList from './pages/instructors/InstructorsList';
 import StudentPortal from './pages/students/StudentPortal';
+import LearningProgress from './pages/progress/LearningProgress';
 
 const HomeRedirect = () => {
   const { isAuthenticated, user } = useAuth();
@@ -51,6 +52,7 @@ function App() {
               <Route path="/courses" element={<CoursesList />} />
               <Route path="/students" element={<StudentsList />} />
               <Route path="/student-portal" element={<StudentPortal />} />
+              <Route path="/progress" element={<LearningProgress />} />
               <Route path="/enrollments" element={<EnrollmentsList />} />
               <Route path="/instructors" element={<InstructorsList />} />
             </Route>

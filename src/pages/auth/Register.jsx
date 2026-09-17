@@ -15,7 +15,7 @@ const Register = () => {
   const {
     register,
     handleSubmit,
-    watch,
+    getValues,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -27,8 +27,6 @@ const Register = () => {
       agreeTerms: false,
     },
   });
-
-  const passwordValue = watch('password');
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -202,7 +200,7 @@ const Register = () => {
                     placeholder="Confirm your password"
                     {...register('confirmPassword', {
                       required: 'Please confirm your password',
-                      validate: (value) => value === passwordValue || 'Passwords do not match',
+                      validate: (value) => value === getValues('password') || 'Passwords do not match',
                     })}
                     className={`w-full pl-11 pr-11 py-3 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all ${
                       errors.confirmPassword ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-sky-500/20 focus:border-sky-500'

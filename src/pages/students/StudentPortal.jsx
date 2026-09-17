@@ -30,8 +30,8 @@ const StudentPortal = () => {
     enrollments,
     instructors,
     addEnrollment,
-    updateEnrollment,
     removeEnrollment,
+    toggleLessonCompletion,
   } = useLMS();
 
   // Current Logged-in Student Object (Gopala Manikanta)
@@ -82,25 +82,9 @@ const StudentPortal = () => {
     };
   };
 
-  // Mock Lesson Modules for Course Player
-  const courseLessons = [
-    { title: '01. Course Overview & Environment Setup', duration: '12 mins', completed: true },
-    { title: '02. Core Architecture & Fundamental Concepts', duration: '25 mins', completed: true },
-    { title: '03. Hands-on Project Initialization & Components', duration: '40 mins', completed: false },
-    { title: '04. State Management, Context & Data Flow', duration: '35 mins', completed: false },
-    { title: '05. Production Build Deployment & Best Practices', duration: '30 mins', completed: false },
-  ];
-
-  // Mark lesson as complete and update course progress %
+  // Lesson completion toggle handler
   const handleToggleLessonComplete = (enrRecord, lessonIdx) => {
-    const newProgress = Math.min(100, Math.max(10, Math.round(((lessonIdx + 1) / courseLessons.length) * 100)));
-    const newStatus = newProgress === 100 ? 'Completed' : 'Active';
-
-    updateEnrollment(enrRecord.id, {
-      ...enrRecord,
-      progress: newProgress,
-      status: newStatus,
-    });
+    toggleLessonCompletion(enrRecord.id, lessonIdx);
   };
 
   return (
@@ -651,108 +635,127 @@ const StudentPortal = () => {
         </div>
       )}
 
-      {/* --- INTERACTIVE COURSE LEARNING PLAYER MODAL --- */}
-      {activeLearningCourse && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-sky-100 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-              <div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-700">
-                  Interactive Learning Player
-                </span>
-                <h3 className="text-xl font-extrabold text-slate-800 mt-1">{activeLearningCourse.courseTitle}</h3>
-                <p className="text-xs text-slate-500">
-                  Category: {activeLearningCourse.courseCategory} • Enrolled: {activeLearningCourse.enrollmentDate}
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveLearningCourse(null)}
-                className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* --- COURSE PLAYER & LESSON STREAM MODAL --- */}
+      {activeLearningCourse && (() => {
+        const freshCourseRecord = enrollments.find((e) => e.id === activeLearningCourse.id) || activeLearningCourse;
+        const activeCourseLessons = (Array.isArray(freshCourseRecord.lessons) && freshCourseRecord.lessons.length > 0)
+          ? freshCourseRecord.lessons
+          : [
+              { title: '01. Course Overview & Environment Setup', duration: '12 mins', completed: true },
+              { title: '02. Core Architecture & Fundamental Concepts', duration: '25 mins', completed: true },
+              { title: '03. Hands-on Project Initialization & Components', duration: '40 mins', completed: false },
+              { title: '04. State Management, Context & Data Flow', duration: '35 mins', completed: false },
+              { title: '05. Production Build Deployment & Best Practices', duration: '30 mins', completed: false },
+            ];
 
-            {/* Video Player Placeholder */}
-            <div className="relative h-56 sm:h-72 rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center shadow-lg group">
-              <img
-                src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800"
-                alt="Lesson Video"
-                className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white space-y-2">
-                <div className="w-16 h-16 rounded-full bg-sky-500/90 text-white flex items-center justify-center shadow-xl backdrop-blur-md transform group-hover:scale-110 transition-transform">
-                  <PlayCircle className="w-10 h-10" />
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-sky-100 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                <div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-700">
+                    Interactive Learning Player
+                  </span>
+                  <h3 className="text-xl font-extrabold text-slate-800 mt-1">{freshCourseRecord.courseTitle}</h3>
+                  <p className="text-xs text-slate-500">
+                    Category: {freshCourseRecord.courseCategory} • Enrolled: {freshCourseRecord.enrollmentDate}
+                  </p>
                 </div>
-                <p className="font-bold text-sm">
-                  {courseLessons[activeLessonIndex]?.title || 'Lesson Stream'}
-                </p>
-                <span className="text-xs text-sky-200 font-mono">
-                  Duration: {courseLessons[activeLessonIndex]?.duration}
-                </span>
-              </div>
-            </div>
-
-            {/* Lesson Modules Checklist */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider">
-                  Course Modules & Lesson Checklist:
-                </h4>
-                <span className="text-sky-600 font-bold text-xs">
-                  Overall Progress: {activeLearningCourse.progress || 45}%
-                </span>
+                <button
+                  onClick={() => setActiveLearningCourse(null)}
+                  className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                {courseLessons.map((lesson, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => setActiveLessonIndex(idx)}
-                    className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
-                      activeLessonIndex === idx
-                        ? 'border-sky-500 bg-sky-50/70 font-semibold'
-                        : 'border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <PlayCircle className={`w-4 h-4 ${activeLessonIndex === idx ? 'text-sky-600' : 'text-slate-400'}`} />
-                      <span className="text-xs text-slate-800">{lesson.title}</span>
-                    </div>
+              {/* Video Player Placeholder */}
+              <div className="relative h-56 sm:h-72 rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center shadow-lg group">
+                <img
+                  src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800"
+                  alt="Lesson Video"
+                  className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white space-y-2">
+                  <div className="w-16 h-16 rounded-full bg-sky-500/90 text-white flex items-center justify-center shadow-xl backdrop-blur-md transform group-hover:scale-110 transition-transform">
+                    <PlayCircle className="w-10 h-10" />
+                  </div>
+                  <p className="font-bold text-sm">
+                    {activeCourseLessons[activeLessonIndex]?.title || 'Lesson Stream'}
+                  </p>
+                  <span className="text-xs text-sky-200 font-mono">
+                    Duration: {activeCourseLessons[activeLessonIndex]?.duration || '15 mins'}
+                  </span>
+                </div>
+              </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] text-slate-400 font-mono">{lesson.duration}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleLessonComplete(activeLearningCourse, idx);
-                        }}
-                        className={`px-3 py-1 rounded-xl text-[10px] font-bold transition-all ${
-                          idx <= Math.floor(((activeLearningCourse.progress || 45) / 100) * courseLessons.length) - 1
-                            ? 'bg-emerald-500 text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-sky-500 hover:text-white'
+              {/* Lesson Modules Checklist */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider">
+                    Course Modules & Lesson Checklist:
+                  </h4>
+                  <span className="text-sky-600 font-bold text-xs">
+                    Overall Progress: {freshCourseRecord.progress || 0}%
+                  </span>
+                </div>
+
+                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                  {activeCourseLessons.map((lesson, idx) => {
+                    const isLessonDone = lesson.completed || idx <= Math.floor(((freshCourseRecord.progress || 0) / 100) * activeCourseLessons.length) - 1;
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveLessonIndex(idx)}
+                        className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
+                          activeLessonIndex === idx
+                            ? 'border-sky-500 bg-sky-50/70 font-semibold'
+                            : 'border-slate-200 hover:bg-slate-50'
                         }`}
                       >
-                        {idx <= Math.floor(((activeLearningCourse.progress || 45) / 100) * courseLessons.length) - 1 ? '✓ Completed' : 'Mark Done'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                        <div className="flex items-center gap-3">
+                          <PlayCircle className={`w-4 h-4 ${activeLessonIndex === idx ? 'text-sky-600' : 'text-slate-400'}`} />
+                          <span className={`text-xs ${isLessonDone ? 'line-through text-slate-500' : 'text-slate-800'}`}>
+                            {lesson.title}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] text-slate-400 font-mono">{lesson.duration}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleLessonComplete(freshCourseRecord, idx);
+                            }}
+                            className={`px-3 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
+                              isLessonDone
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-slate-100 text-slate-600 hover:bg-sky-500 hover:text-white'
+                            }`}
+                          >
+                            {isLessonDone ? '✓ Completed' : 'Mark Done'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={() => setActiveLearningCourse(null)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 transition-colors shadow-md shadow-sky-500/20 cursor-pointer"
+                >
+                  Close Player
+                </button>
               </div>
             </div>
-
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
-              <button
-                onClick={() => setActiveLearningCourse(null)}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 transition-colors shadow-md shadow-sky-500/20"
-              >
-                Close Player
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* --- OFFICIAL CERTIFICATE PREVIEW MODAL --- */}
       {viewingCertificate && (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLMS } from '../../context/LMSContext';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import {
   Plus,
   Search,
@@ -12,7 +12,6 @@ import {
   BookOpen,
   Edit2,
   Trash2,
-  Eye,
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
@@ -20,8 +19,6 @@ import {
   AlertCircle,
   AlertTriangle,
   Sparkles,
-  BookmarkCheck,
-  Check,
   CheckCircle2,
   ArrowRight,
   GraduationCap
@@ -31,7 +28,7 @@ const ITEMS_PER_PAGE = 6;
 
 const CoursesList = () => {
   const { user } = useAuth();
-  const { courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, addEnrollment, removeEnrollment } = useLMS();
+  const { courses, enrollments, instructors, loading, error, addCourse, updateCourse, deleteCourse, addEnrollment, removeEnrollment } = useLMS();
   const isStudent = user?.role === 'Student';
 
   // Search, Filter, Sort, Pagination States
@@ -46,6 +43,7 @@ const CoursesList = () => {
   const [viewingCourse, setViewingCourse] = useState(null);
   const [deletingCourse, setDeletingCourse] = useState(null);
   const [confirmingEnrollmentCourse, setConfirmingEnrollmentCourse] = useState(null);
+  const [customInstructorName, setCustomInstructorName] = useState('');
 
   const categories = ['All', 'React', 'JavaScript', 'Node.js', 'UI/UX Design', 'Python', 'Data Science'];
 
@@ -55,14 +53,37 @@ const CoursesList = () => {
     handleSubmit,
     reset,
     setValue,
+    control,
     formState: { errors },
   } = useForm();
+
+  const watchInstructor = useWatch({ control, name: 'instructor' });
+
+  // Open Add Modal cleanly
+  const handleOpenAdd = () => {
+    reset();
+    setEditingCourse(null);
+    setCustomInstructorName('');
+    if (instructors && instructors.length > 0) {
+      setValue('instructor', instructors[0].name);
+    }
+    setIsAddModalOpen(true);
+  };
 
   // Open Edit Modal
   const handleOpenEdit = (course) => {
     setEditingCourse(course);
     setValue('title', course.title);
-    setValue('instructor', course.instructor);
+
+    const exists = instructors?.some((i) => i.name === course.instructor);
+    if (exists) {
+      setValue('instructor', course.instructor);
+      setCustomInstructorName('');
+    } else {
+      setValue('instructor', '__custom__');
+      setCustomInstructorName(course.instructor || '');
+    }
+
     setValue('category', course.category);
     setValue('duration', course.duration);
     setValue('level', course.level);
@@ -74,16 +95,27 @@ const CoursesList = () => {
 
   // Submit Add or Edit Form
   const handleFormSubmit = (data) => {
+    let finalInstructor = data.instructor;
+    if (data.instructor === '__custom__') {
+      if (!customInstructorName.trim()) {
+        return;
+      }
+      finalInstructor = customInstructorName.trim();
+    }
+
+    const payload = { ...data, instructor: finalInstructor };
+
     if (editingCourse) {
-      updateCourse(editingCourse.id, data);
+      updateCourse(editingCourse.id, payload);
       setEditingCourse(null);
     } else {
-      addCourse(data);
+      addCourse(payload);
       setIsAddModalOpen(false);
       setSortBy('newest');
       setCurrentPage(1); // Jump to page 1 so newly created course displays FIRST
     }
     reset();
+    setCustomInstructorName('');
   };
 
   // Filter & Search Logic
@@ -136,11 +168,7 @@ const CoursesList = () => {
         </div>
         {!isStudent && (
           <button
-            onClick={() => {
-              reset();
-              setEditingCourse(null);
-              setIsAddModalOpen(true);
-            }}
+            onClick={handleOpenAdd}
             className="inline-flex items-center gap-2 px-5 py-3 bg-white text-sky-600 hover:bg-sky-50 font-bold text-sm rounded-2xl shadow-md transition self-start sm:self-center cursor-pointer"
           >
             <Plus className="w-5 h-5" />
@@ -228,177 +256,167 @@ const CoursesList = () => {
           {paginatedCourses.map((course) => (
             <div
               key={course.id}
-              className="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-sky-200 transition-all duration-300 flex flex-col overflow-hidden group"
+              className="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-sky-300 transition-all duration-300 flex flex-col overflow-hidden group cursor-pointer"
             >
-              {/* Course Thumbnail */}
-              <div className="relative h-48 bg-slate-100 overflow-hidden">
-                <img
-                  src={course.thumbnail}
-                  alt={course.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-xl bg-sky-500 text-white text-[10px] font-bold shadow-md">
-                    {course.category}
-                  </span>
+              {/* Clickable Card Body (Opens View Modal) */}
+              <div onClick={() => setViewingCourse(course)} className="flex-1 flex flex-col justify-between">
+                {/* Course Thumbnail */}
+                <div className="relative h-48 bg-slate-100 overflow-hidden">
+                  <img
+                    src={course.thumbnail}
+                    alt={course.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2.5 py-1 rounded-xl bg-sky-500 text-white text-[10px] font-bold shadow-md">
+                      {course.category}
+                    </span>
+                  </div>
+                  <div className="absolute top-3 right-3">
+                    <span className="px-2.5 py-1 rounded-xl bg-white/90 backdrop-blur-md text-slate-800 text-[10px] font-bold shadow-md">
+                      {course.level}
+                    </span>
+                  </div>
                 </div>
-                <div className="absolute top-3 right-3">
-                  <span className="px-2.5 py-1 rounded-xl bg-white/90 backdrop-blur-md text-slate-800 text-[10px] font-bold shadow-md">
-                    {course.level}
-                  </span>
+
+                {/* Course Info Body */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="font-extrabold text-slate-800 text-base group-hover:text-sky-600 transition-colors line-clamp-1">
+                      {course.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                      {course.description}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-xs text-slate-600">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <User className="w-3.5 h-3.5 text-sky-500" />
+                        <span>{course.instructor}</span>
+                      </span>
+                      <span className="flex items-center gap-1 font-bold text-amber-500">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{course.rating}</span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-600">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{course.duration}</span>
+                      </span>
+                      <span className="font-extrabold text-sky-600 text-sm">{course.price}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Course Info */}
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1 text-amber-500 font-bold">
-                      <Star className="w-4 h-4 fill-amber-400" />
-                      <span>{course.rating}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-500">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{course.duration}</span>
-                    </div>
-                  </div>
-
-                  <h3 className="font-bold text-slate-900 text-base line-clamp-1 group-hover:text-sky-600 transition-colors">
-                    {course.title}
-                  </h3>
-
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                    {course.description}
-                  </p>
-                </div>
-
-                {/* Instructor & Actions Footer */}
-                <div className="pt-4 border-t border-slate-100 space-y-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-sky-100 text-sky-600 font-bold flex items-center justify-center text-xs">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <span className="font-semibold text-slate-800">{course.instructor}</span>
-                    </div>
-                    <span className="text-base font-extrabold text-sky-600">{course.price}</span>
-                  </div>
-
-                  {/* Course Action Buttons (Details for all, Edit/Delete for Admin, Enroll for Student) */}
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      onClick={() => setViewingCourse(course)}
-                      className="flex-1 py-2 bg-sky-50 hover:bg-sky-500 text-sky-600 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Details</span>
-                    </button>
-
-                    {isStudent ? (
-                      (() => {
-                        const enrRecord = enrollments?.find(
-                          (e) => e.courseId === course.id && (e.studentEmail?.toLowerCase() === user?.email?.toLowerCase() || e.studentId === 's_manikanta')
-                        );
-                        if (!enrRecord) {
-                          return (
-                            <button
-                              onClick={() => setViewingCourse(course)}
-                              className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1 cursor-pointer"
-                              title="Read Details & Enroll"
-                            >
-                              <BookmarkCheck className="w-3.5 h-3.5" />
-                              <span>Enroll</span>
-                            </button>
-                          );
-                        }
-
-                        const isCompleted = enrRecord.status === 'Completed' || enrRecord.progress === 100;
-                        return isCompleted ? (
-                          <span className="px-3 py-2 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Completed</span>
+              {/* Action Buttons */}
+              <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+                {isStudent ? (
+                  (() => {
+                    const enrRecord = enrollments?.find(
+                      (e) => e.courseId === course.id && (e.studentEmail?.toLowerCase() === user?.email?.toLowerCase() || e.studentId === 's_manikanta')
+                    );
+                    const isCompleted = enrRecord?.status === 'Completed' || enrRecord?.progress === 100;
+                    if (enrRecord) {
+                      return (
+                        <div className="w-full flex items-center justify-between gap-2">
+                          <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>{isCompleted ? 'Completed' : 'Enrolled'}</span>
                           </span>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            <span className="px-3 py-2 bg-sky-100 text-sky-800 text-xs font-bold rounded-xl flex items-center gap-1">
-                              <Check className="w-3.5 h-3.5 text-sky-600" />
-                              <span>Enrolled</span>
-                            </span>
+                          {!isCompleted && (
                             <button
-                              onClick={() => setDeletingCourse({ ...course, isEnrollmentDrop: true, enrollmentId: enrRecord.id })}
-                              className="p-2 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl transition cursor-pointer border border-slate-200 hover:border-red-200"
-                              title="Drop Active Course"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingCourse({
+                                  ...course,
+                                  isEnrollmentDrop: true,
+                                  enrollmentId: enrRecord.id,
+                                });
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-[11px] transition cursor-pointer"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              Drop Course
                             </button>
-                          </div>
-                        );
-                      })()
-                    ) : (
-                      <>
+                          )}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="w-full flex items-center justify-between gap-2">
                         <button
-                          onClick={() => handleOpenEdit(course)}
-                          className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
-                          title="Edit Course"
+                          onClick={() => setViewingCourse(course)}
+                          className="flex-1 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition text-center cursor-pointer"
                         >
-                          <Edit2 className="w-3.5 h-3.5" />
+                          View Details
                         </button>
                         <button
-                          onClick={() => setDeletingCourse(course)}
-                          className="p-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition cursor-pointer"
-                          title="Delete Course"
+                          onClick={() => setViewingCourse(course)}
+                          className="flex-1 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-xs transition text-center cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          Enroll Now
                         </button>
-                      </>
-                    )}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div className="flex items-center justify-end w-full gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => handleOpenEdit(course)}
+                      className="px-3 py-1.5 bg-white border border-slate-200 hover:border-sky-300 text-slate-700 hover:text-sky-600 font-semibold rounded-xl transition cursor-pointer flex items-center gap-1"
+                      title="Edit Course"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => setDeletingCourse(course)}
+                      className="px-3 py-1.5 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white font-semibold rounded-xl transition cursor-pointer flex items-center gap-1"
+                      title="Delete Course"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete</span>
+                    </button>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ))}
         </div>
-      ) : !loading ? (
-        <div className="p-12 text-center bg-white rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-          <BookOpen className="w-10 h-10 text-sky-300 mx-auto" />
-          <p className="text-sm font-semibold text-slate-700">No courses found matching your filter.</p>
-          <button
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedCategory('All');
-            }}
-            className="px-4 py-2 bg-sky-500 text-white text-xs font-bold rounded-xl shadow-md"
-          >
-            Reset Search Filters
-          </button>
-        </div>
-      ) : null}
+      ) : (
+        !loading && (
+          <div className="p-12 text-center bg-white rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+            <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
+            <h3 className="text-base font-bold text-slate-700">No courses found</h3>
+            <p className="text-xs text-slate-400">Try adjusting your search query or category filter.</p>
+          </div>
+        )
+      )}
 
       {/* Pagination Controls */}
-      {!loading && sortedCourses.length > ITEMS_PER_PAGE && (
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between text-xs text-slate-600 font-medium">
-          <span>
-            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
-            {Math.min(currentPage * ITEMS_PER_PAGE, sortedCourses.length)} of {sortedCourses.length} courses
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between bg-white px-6 py-4 rounded-2xl border border-slate-200/80 shadow-xs">
+          <span className="text-xs text-slate-500 font-medium">
+            Page <strong className="text-slate-800">{currentPage}</strong> of <strong className="text-slate-800">{totalPages}</strong>
           </span>
-
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4 text-slate-600" />
             </button>
-            <span className="font-bold text-slate-800">
-              Page {currentPage} of {totalPages}
-            </span>
             <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 text-slate-600" />
             </button>
           </div>
         </div>
@@ -406,12 +424,17 @@ const CoursesList = () => {
 
       {/* Add / Edit Course Modal */}
       {(isAddModalOpen || editingCourse) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xl p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h2 className="text-xl font-bold text-slate-900">
-                {editingCourse ? 'Edit Course Details' : 'Add New Course'}
-              </h2>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-sm">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {editingCourse ? 'Edit Academic Course' : 'Create Academic Course'}
+                </h3>
+              </div>
               <button
                 onClick={() => {
                   setIsAddModalOpen(false);
@@ -431,22 +454,44 @@ const CoursesList = () => {
                     type="text"
                     placeholder="e.g. React JS Masterclass"
                     {...register('title', { required: 'Course name is required' })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-medium"
                   />
                   {errors.title && <p className="text-[10px] text-red-500">{errors.title.message}</p>}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-xs font-semibold text-slate-700">Instructor Name *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. John Smith"
-                    {...register('instructor', { required: 'Instructor name is required' })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-                  />
+                  <label className="block text-xs font-semibold text-slate-700">Assign Instructor *</label>
+                  <select
+                    {...register('instructor', { required: 'Instructor is required' })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-medium"
+                  >
+                    {instructors && instructors.map((inst) => (
+                      <option key={inst.id} value={inst.name}>
+                        {inst.name} ({inst.specialization || 'Faculty'})
+                      </option>
+                    ))}
+                    <option value="__custom__">+ Add Custom / New Instructor Name</option>
+                  </select>
                   {errors.instructor && <p className="text-[10px] text-red-500">{errors.instructor.message}</p>}
                 </div>
               </div>
+
+              {watchInstructor === '__custom__' && (
+                <div className="space-y-1.5 p-3 rounded-2xl bg-sky-50/70 border border-sky-200 animate-in fade-in duration-200">
+                  <label className="block text-[11px] font-bold text-sky-800">New Instructor Full Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Prof. Alan Turing"
+                    value={customInstructorName}
+                    onChange={(e) => setCustomInstructorName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-sky-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 font-semibold"
+                    required
+                  />
+                  <p className="text-[10px] text-sky-600 font-medium">
+                    ✨ Entering a new instructor will automatically create a new profile in the Instructors Directory!
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">

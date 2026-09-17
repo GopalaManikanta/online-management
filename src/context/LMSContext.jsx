@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchCoursesFromAPI, fetchStudentsFromAPI, INITIAL_COURSES } from '../services/api';
+import { fetchCoursesFromAPI, fetchStudentsFromAPI, INITIAL_COURSES, FACULTY_AVATARS, getFacultyAvatar } from '../services/api';
 import { toast } from 'react-toastify';
 
 const LMSContext = createContext();
@@ -14,7 +14,7 @@ const DEFAULT_INSTRUCTORS = [
     specialization: 'React & Frontend Architecture',
     rating: 4.9,
     bio: 'Lead Frontend Architect & former Senior Engineer with 8+ years specializing in React, Next.js, and modern UI performance.',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80',
+    avatar: FACULTY_AVATARS[0],
     assignedCourseIds: ['c1', 'c7'],
     createdAt: '2026-01-10',
   },
@@ -27,7 +27,7 @@ const DEFAULT_INSTRUCTORS = [
     specialization: 'Full Stack & Node.js',
     rating: 4.8,
     bio: 'Associate Professor & Full Stack Consultant with a decade of expertise in Node.js, Microservices, and cloud deployments.',
-    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80',
+    avatar: FACULTY_AVATARS[1],
     assignedCourseIds: ['c2', 'c3'],
     createdAt: '2026-01-15',
   },
@@ -40,7 +40,7 @@ const DEFAULT_INSTRUCTORS = [
     specialization: 'Python & Data Science',
     rating: 4.9,
     bio: 'Data Scientist & Machine Learning Specialist with hands-on experience building AI models, Pandas analytics pipelines, and neural networks.',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
+    avatar: FACULTY_AVATARS[2],
     assignedCourseIds: ['c5', 'c6'],
     createdAt: '2026-02-01',
   },
@@ -53,11 +53,31 @@ const DEFAULT_INSTRUCTORS = [
     specialization: 'UI/UX Design Systems',
     rating: 4.7,
     bio: 'Senior Product Designer crafting enterprise design systems, Figma wireframes, and intuitive user experiences.',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80',
+    avatar: FACULTY_AVATARS[3],
     assignedCourseIds: ['c4', 'c8'],
     createdAt: '2026-02-10',
   },
 ];
+
+const sanitizeCourses = (list) => {
+  return list.map((c) => {
+    if (c.id === 'c1') return { ...c, instructor: 'Dr. Sarah Johnson' };
+    if (c.id === 'c2' || c.id === 'c3') return { ...c, instructor: 'Prof. Mike Davis' };
+    if (c.id === 'c4' || c.id === 'c8') return { ...c, instructor: 'Emily Carter' };
+    if (c.id === 'c5' || c.id === 'c6') return { ...c, instructor: 'Alex Turner' };
+    if (c.id === 'c7') return { ...c, instructor: 'Dr. Sarah Johnson' };
+    return c;
+  });
+};
+
+const sanitizeInstructors = (list) => {
+  return list.map((inst, idx) => {
+    if (!inst.avatar || inst.avatar.includes('dicebear')) {
+      return { ...inst, avatar: FACULTY_AVATARS[idx % FACULTY_AVATARS.length] };
+    }
+    return inst;
+  });
+};
 
 export const LMSProvider = ({ children }) => {
   const [courses, setCourses] = useState(() => {
@@ -66,16 +86,22 @@ export const LMSProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c, idx) => ({
-            ...c,
-            thumbnail: c.thumbnail || INITIAL_COURSES[idx % INITIAL_COURSES.length].thumbnail,
-          }));
+          const sanitized = sanitizeCourses(
+            parsed.map((c, idx) => ({
+              ...c,
+              thumbnail: c.thumbnail || INITIAL_COURSES[idx % INITIAL_COURSES.length].thumbnail,
+            }))
+          );
+          localStorage.setItem('edusync_courses', JSON.stringify(sanitized));
+          return sanitized;
         }
       } catch (e) {
         console.error('Error parsing courses from local storage', e);
       }
     }
-    return INITIAL_COURSES;
+    const sanitized = sanitizeCourses(INITIAL_COURSES);
+    localStorage.setItem('edusync_courses', JSON.stringify(sanitized));
+    return sanitized;
   });
 
   const MANIKANTA_STUDENT = {
@@ -114,13 +140,18 @@ export const LMSProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sanitized = sanitizeInstructors(parsed);
+          localStorage.setItem('edusync_instructors', JSON.stringify(sanitized));
+          return sanitized;
+        }
       } catch (e) {
         console.error('Error parsing instructors from local storage', e);
       }
     }
-    localStorage.setItem('edusync_instructors', JSON.stringify(DEFAULT_INSTRUCTORS));
-    return DEFAULT_INSTRUCTORS;
+    const sanitized = sanitizeInstructors(DEFAULT_INSTRUCTORS);
+    localStorage.setItem('edusync_instructors', JSON.stringify(sanitized));
+    return sanitized;
   });
 
   const DEFAULT_ENROLLMENTS = [
@@ -290,6 +321,7 @@ export const LMSProvider = ({ children }) => {
       }
     };
     loadCourses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch initial students from DummyJSON API if empty
@@ -309,16 +341,7 @@ export const LMSProvider = ({ children }) => {
       }
     };
     loadStudents();
-  }, []);
-
-  // Ensure default enrollments are seeded if empty or missing statuses
-  useEffect(() => {
-    const hasPending = enrollments.some((e) => e.status === 'Pending');
-    const hasCancelled = enrollments.some((e) => e.status === 'Cancelled');
-    if (enrollments.length < 4 || !hasPending || !hasCancelled) {
-      setEnrollments(DEFAULT_ENROLLMENTS);
-      localStorage.setItem('edusync_enrollments', JSON.stringify(DEFAULT_ENROLLMENTS));
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -354,13 +377,15 @@ export const LMSProvider = ({ children }) => {
     setActivities((prev) => [newAct, ...prev].slice(0, 20));
   };
 
-  // Course CRUD Functions
+  // Course CRUD Functions with Bidirectional Instructor Synchronization
   const addCourse = (courseData) => {
+    const instructorName = courseData.instructor?.trim() || 'Dr. Sarah Johnson';
+
     const newCourse = {
       id: `c_${Date.now()}`,
       thumbnail: courseData.thumbnail || INITIAL_COURSES[courses.length % INITIAL_COURSES.length].thumbnail,
       title: courseData.title,
-      instructor: courseData.instructor || 'John Smith',
+      instructor: instructorName,
       category: courseData.category || 'React',
       duration: courseData.duration || '6 Weeks',
       level: courseData.level || 'Beginner',
@@ -369,17 +394,106 @@ export const LMSProvider = ({ children }) => {
       rating: courseData.rating ? Number(courseData.rating) : 5.0,
     };
 
-    const updated = [newCourse, ...courses];
-    setCourses(updated);
-    addActivity('New Course Added', `Created course "${newCourse.title}"`);
+    const updatedCourses = [newCourse, ...courses];
+    setCourses(updatedCourses);
+
+    // Sync with Instructors list
+    const existingInstructor = instructors.find(
+      (inst) => inst.name.toLowerCase() === instructorName.toLowerCase()
+    );
+
+    if (existingInstructor) {
+      const updatedInstructors = instructors.map((inst) =>
+        inst.id === existingInstructor.id
+          ? {
+              ...inst,
+              assignedCourseIds: Array.from(new Set([...(inst.assignedCourseIds || []), newCourse.id])),
+            }
+          : inst
+      );
+      setInstructors(updatedInstructors);
+      localStorage.setItem('edusync_instructors', JSON.stringify(updatedInstructors));
+    } else {
+      // Auto-create new Instructor Profile!
+      const newInstructor = {
+        id: `inst_${Date.now()}`,
+        name: instructorName,
+        email: `${instructorName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@edusync.com`,
+        phone: '+1 (555) 019-2831',
+        experience: '5 Years',
+        specialization: `${newCourse.category || 'Software Engineering'} Specialist`,
+        rating: 4.8,
+        bio: `Lead Faculty & Course Instructor for ${newCourse.title}.`,
+        avatar: getFacultyAvatar(instructorName),
+        assignedCourseIds: [newCourse.id],
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      const updatedInstructors = [newInstructor, ...instructors];
+      setInstructors(updatedInstructors);
+      localStorage.setItem('edusync_instructors', JSON.stringify(updatedInstructors));
+      toast.info(`New Faculty member "${instructorName}" added to Instructors directory!`);
+    }
+
+    addActivity('New Course Added', `Created course "${newCourse.title}" taught by ${instructorName}`);
     toast.success(`Course "${courseData.title}" created successfully!`);
     return newCourse;
   };
 
   const updateCourse = (id, updatedData) => {
+    const targetCourse = courses.find((c) => c.id === id);
+    const oldInstructorName = targetCourse?.instructor;
+    const newInstructorName = updatedData.instructor?.trim();
+
     const updated = courses.map((c) => (c.id === id ? { ...c, ...updatedData } : c));
     setCourses(updated);
-    addActivity('Course Updated', `Updated course details`);
+
+    if (newInstructorName && oldInstructorName !== newInstructorName) {
+      let updatedInsts = instructors.map((inst) => {
+        if (inst.name.toLowerCase() === oldInstructorName?.toLowerCase()) {
+          return {
+            ...inst,
+            assignedCourseIds: (inst.assignedCourseIds || []).filter((cId) => cId !== id),
+          };
+        }
+        return inst;
+      });
+
+      const targetInst = updatedInsts.find(
+        (inst) => inst.name.toLowerCase() === newInstructorName.toLowerCase()
+      );
+
+      if (targetInst) {
+        updatedInsts = updatedInsts.map((inst) =>
+          inst.id === targetInst.id
+            ? {
+                ...inst,
+                assignedCourseIds: Array.from(new Set([...(inst.assignedCourseIds || []), id])),
+              }
+            : inst
+        );
+      } else {
+        const newInstructor = {
+          id: `inst_${Date.now()}`,
+          name: newInstructorName,
+          email: `${newInstructorName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@edusync.com`,
+          phone: '+1 (555) 019-2831',
+          experience: '5 Years',
+          specialization: `${updatedData.category || 'Software Engineering'} Specialist`,
+          rating: 4.8,
+          bio: `Faculty instructor for academic course modules.`,
+          avatar: getFacultyAvatar(newInstructorName),
+          assignedCourseIds: [id],
+          createdAt: new Date().toISOString().split('T')[0],
+        };
+        updatedInsts = [newInstructor, ...updatedInsts];
+        toast.info(`Faculty member "${newInstructorName}" added to Instructors directory!`);
+      }
+
+      setInstructors(updatedInsts);
+      localStorage.setItem('edusync_instructors', JSON.stringify(updatedInsts));
+    }
+
+    addActivity('Course Updated', `Updated course details for "${updatedData.title || targetCourse?.title}"`);
     toast.success('Course updated successfully!');
   };
 
@@ -539,13 +653,21 @@ export const LMSProvider = ({ children }) => {
 
   // Instructor CRUD Functions
   const addInstructor = (instructorData) => {
+    const avatarUrl =
+      instructorData.avatar && !instructorData.avatar.includes('dicebear')
+        ? instructorData.avatar
+        : getFacultyAvatar(instructorData.name);
+
     const newInst = {
       id: `inst_${Date.now()}`,
       name: instructorData.name,
       email: instructorData.email,
+      phone: instructorData.phone || '+1 (555) 019-2831',
       experience: instructorData.experience || '3 Years',
       specialization: instructorData.specialization || 'Software Engineering',
-      avatar: instructorData.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(instructorData.name)}`,
+      rating: Number(instructorData.rating) || 4.8,
+      bio: instructorData.bio || 'Experienced academic faculty member.',
+      avatar: avatarUrl,
       assignedCourseIds: instructorData.assignedCourseIds || [],
       createdAt: new Date().toISOString().split('T')[0],
     };
@@ -576,14 +698,68 @@ export const LMSProvider = ({ children }) => {
   };
 
   const assignCourseToInstructor = (instructorId, courseIds) => {
+    const target = instructors.find((inst) => inst.id === instructorId);
+    if (!target) return;
+
     const updated = instructors.map((inst) =>
       inst.id === instructorId ? { ...inst, assignedCourseIds: courseIds } : inst
     );
     setInstructors(updated);
     localStorage.setItem('edusync_instructors', JSON.stringify(updated));
-    const target = instructors.find((inst) => inst.id === instructorId);
+
+    // Also update the course's instructor field for any course assigned to this instructor
+    const updatedCourses = courses.map((c) => {
+      if (courseIds.includes(c.id)) {
+        return { ...c, instructor: target.name };
+      }
+      return c;
+    });
+    setCourses(updatedCourses);
+    localStorage.setItem('edusync_courses', JSON.stringify(updatedCourses));
+
     addActivity('Courses Assigned', `Assigned course(s) to "${target?.name}"`);
     toast.success(`Courses assigned to "${target?.name || 'Instructor'}" successfully!`);
+  };
+
+  const DEFAULT_COURSE_LESSONS = [
+    { id: 'l1', title: '01. Course Overview & Environment Setup', duration: '15 mins' },
+    { id: 'l2', title: '02. Core Architecture & Fundamental Concepts', duration: '25 mins' },
+    { id: 'l3', title: '03. Hands-on Project Initialization & Components', duration: '40 mins' },
+    { id: 'l4', title: '04. State Management, Context & Data Flow', duration: '35 mins' },
+    { id: 'l5', title: '05. Production Build Deployment & Best Practices', duration: '30 mins' },
+  ];
+
+  const toggleLessonCompletion = (enrollmentId, lessonIndex) => {
+    const existing = enrollments.find((e) => e.id === enrollmentId);
+    if (!existing) return false;
+
+    const initialLessons = existing.lessons || DEFAULT_COURSE_LESSONS.map((l, idx) => ({
+      ...l,
+      completed: idx < Math.round(((existing.progress || 0) / 100) * DEFAULT_COURSE_LESSONS.length),
+    }));
+
+    const updatedLessons = initialLessons.map((l, idx) =>
+      idx === lessonIndex ? { ...l, completed: !l.completed } : l
+    );
+
+    const completedCount = updatedLessons.filter((l) => l.completed).length;
+    const totalCount = updatedLessons.length;
+    const newProgress = Math.round((completedCount / totalCount) * 100);
+    const newStatus = newProgress === 100 ? 'Completed' : newProgress === 0 ? 'Pending' : 'Active';
+
+    const updatedRecord = {
+      ...existing,
+      lessons: updatedLessons,
+      progress: newProgress,
+      status: newStatus,
+    };
+
+    const updated = enrollments.map((e) => (e.id === enrollmentId ? updatedRecord : e));
+    setEnrollments(updated);
+    localStorage.setItem('edusync_enrollments', JSON.stringify(updated));
+
+    toast.success(`Lesson progress updated: ${completedCount}/${totalCount} completed (${newProgress}%)`);
+    return true;
   };
 
   return (
@@ -606,6 +782,8 @@ export const LMSProvider = ({ children }) => {
         updateEnrollment,
         removeEnrollment,
         isAlreadyEnrolled,
+        toggleLessonCompletion,
+        DEFAULT_COURSE_LESSONS,
         addInstructor,
         updateInstructor,
         deleteInstructor,
