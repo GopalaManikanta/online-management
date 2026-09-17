@@ -119,7 +119,7 @@ export const INITIAL_COURSES = [
   }
 ];
 
-// Third-Party API Call: Fetch Courses with Axios from DummyJSON (/posts)
+// Enterprise External Course API Fetch Service
 export const fetchCoursesFromAPI = async () => {
   try {
     const response = await api.get('/posts?limit=8');
@@ -147,7 +147,7 @@ export const fetchCoursesFromAPI = async () => {
   }
 };
 
-// Third-Party API Call: Fetch Students from DummyJSON (/users) using Axios
+// Enterprise Student Data Integration Service
 export const fetchStudentsFromAPI = async () => {
   try {
     const response = await api.get('/users?limit=10');
@@ -162,9 +162,9 @@ export const fetchStudentsFromAPI = async () => {
           : 'Jubilee Hills, Hyderabad, Telangana';
 
         return {
-          id: `dj_student_${u.id}`,
+          id: `stu_ext_${u.id}`,
           name: `${u.firstName} ${u.lastName}`,
-          email: u.email,
+          email: `${u.firstName.toLowerCase()}.${u.lastName.toLowerCase()}@edusync.com`,
           phone: phone,
           address: addressStr,
           qualification: u.university || qualifications[idx % qualifications.length],
@@ -175,7 +175,7 @@ export const fetchStudentsFromAPI = async () => {
     }
     return [];
   } catch (error) {
-    console.warn('Axios DummyJSON API fallback for students:', error.message);
+    console.warn('Axios API fallback for students:', error.message);
     return [];
   }
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLMS } from '../../context/LMSContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import {
   BookOpen,
   Users,
@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   PlusCircle,
   UserPlus,
-  FileText,
   Clock,
   Activity,
   Sparkles,
@@ -22,7 +21,7 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { students, enrollments, activities, stats, addCourse } = useLMS();
+  const { instructors, students, enrollments, activities, stats, addCourse } = useLMS();
   const navigate = useNavigate();
 
   // Quick Action Modal State
@@ -40,6 +39,11 @@ const Dashboard = () => {
     thumbnail: '',
     description: '',
   });
+
+  // If student is logged in, redirect directly to Student Portal
+  if (user?.role === 'Student') {
+    return <Navigate to="/student-portal" replace />;
+  }
 
   const handleAddCourseSubmit = (e) => {
     e.preventDefault();
@@ -61,7 +65,7 @@ const Dashboard = () => {
     setIsAddCourseModalOpen(false);
   };
 
-  // 5 Metric Cards (Total Courses, Students & Enrollments show real live count)
+  // 5 Metric Cards (Total Courses, Students, Instructors & Enrollments show real live count)
   const kpiCards = [
     {
       id: 'total-courses',
@@ -80,7 +84,7 @@ const Dashboard = () => {
     {
       id: 'total-instructors',
       title: 'Total Instructors',
-      value: 0,
+      value: stats.totalInstructors || instructors.length,
       icon: GraduationCap,
       bgColor: 'bg-sky-50 text-sky-600',
     },
@@ -130,13 +134,13 @@ const Dashboard = () => {
       active: true,
     },
     {
-      id: 'view-reports',
-      title: 'View Reports',
-      desc: 'Generate & inspect summary report',
-      icon: FileText,
+      id: 'faculty-directory',
+      title: 'Faculty Directory',
+      desc: 'Register and manage faculty members',
+      icon: GraduationCap,
       bgColor: 'bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white',
-      action: () => {},
-      active: false,
+      action: () => navigate('/instructors'),
+      active: true,
     },
   ];
 
@@ -384,6 +388,58 @@ const Dashboard = () => {
                     <span className="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-700 font-semibold text-[10px]">
                       {st.qualification}
                     </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Academic Faculty / Lead Instructors Section */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-sky-600" />
+                <h2 className="text-lg font-bold text-slate-900">Academic Faculty</h2>
+              </div>
+              <button
+                onClick={() => navigate('/instructors')}
+                className="text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer"
+              >
+                <span>View All ({instructors.length})</span>
+              </button>
+            </div>
+
+            {instructors.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 space-y-2">
+                <GraduationCap className="w-8 h-8 mx-auto text-sky-300" />
+                <p className="text-xs font-semibold text-slate-500">No faculty members registered (Count: 0)</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {instructors.slice(0, 4).map((inst) => (
+                  <div key={inst.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={inst.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+                        alt={inst.name}
+                        className="w-8 h-8 rounded-full object-cover ring-2 ring-sky-100 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-800 truncate max-w-[120px]">{inst.name}</p>
+                        <p className="text-[10px] text-slate-500 truncate max-w-[130px]">{inst.specialization}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold flex items-center gap-0.5">
+                        ⭐ {inst.rating || 4.8}
+                      </span>
+                      <button
+                        onClick={() => navigate('/instructors')}
+                        className="px-2 py-1 rounded-lg bg-sky-100 text-sky-700 font-semibold text-[10px] hover:bg-sky-200 transition-colors"
+                      >
+                        {inst.assignedCourseIds?.length || 0} Courses
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

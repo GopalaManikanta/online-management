@@ -7,20 +7,29 @@ import {
   GraduationCap,
   BookmarkCheck,
   LogOut,
-  X
+  X,
+  UserCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ mobileOpen, setMobileOpen }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Courses', path: '/courses', icon: BookOpen },
-    { name: 'Students', path: '/students', icon: Users },
-    { name: 'Enrollments', path: '/enrollments', icon: BookmarkCheck },
-  ];
+  const isStudent = user?.role === 'Student';
+
+  const navItems = isStudent
+    ? [
+        { name: 'My Learning Portal', path: '/student-portal', icon: UserCheck },
+        { name: 'Browse Courses', path: '/courses', icon: BookOpen },
+      ]
+    : [
+        { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Courses', path: '/courses', icon: BookOpen },
+        { name: 'Students', path: '/students', icon: Users },
+        { name: 'Enrollments', path: '/enrollments', icon: BookmarkCheck },
+        { name: 'Instructors', path: '/instructors', icon: GraduationCap },
+      ];
 
   const handleLogout = () => {
     logout();

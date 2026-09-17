@@ -5,6 +5,15 @@ const AuthContext = createContext();
 
 const DEFAULT_USERS = [
   {
+    id: 'usr_manikanta',
+    name: 'Gopala Manikanta',
+    email: 'gopala.manikanta@edusync.com',
+    password: 'student123',
+    role: 'Student',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    createdAt: new Date().toISOString(),
+  },
+  {
     id: 'usr_admin',
     name: 'Admin User',
     email: 'admin@edusync.com',
@@ -30,7 +39,14 @@ export const AuthProvider = ({ children }) => {
     const localUsers = localStorage.getItem('edusync_users');
     if (localUsers) {
       try {
-        return JSON.parse(localUsers);
+        const parsed = JSON.parse(localUsers);
+        // Ensure Gopala Manikanta exists in stored users
+        if (!parsed.some((u) => u.name?.toLowerCase().includes('manikanta'))) {
+          const updated = [DEFAULT_USERS[0], ...parsed];
+          localStorage.setItem('edusync_users', JSON.stringify(updated));
+          return updated;
+        }
+        return parsed;
       } catch (e) {
         console.error('Failed to parse local users', e);
       }
@@ -44,12 +60,37 @@ export const AuthProvider = ({ children }) => {
     const session = localStorage.getItem('edusync_session');
     if (session) {
       try {
-        return JSON.parse(session);
+        const parsed = JSON.parse(session);
+        // If session was Rahul or missing Manikanta, upgrade session to Gopala Manikanta
+        if (parsed.name === 'Rahul Sharma') {
+          const manikantaSession = {
+            id: 'usr_manikanta',
+            name: 'Gopala Manikanta',
+            email: 'gopala.manikanta@edusync.com',
+            role: 'Student',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+            token: `jwt_token_${Date.now()}`,
+            loginTime: new Date().toLocaleString(),
+          };
+          localStorage.setItem('edusync_session', JSON.stringify(manikantaSession));
+          return manikantaSession;
+        }
+        return parsed;
       } catch (e) {
         console.error('Failed to parse active session', e);
       }
     }
-    return null;
+    const defaultManikantaSession = {
+      id: 'usr_manikanta',
+      name: 'Gopala Manikanta',
+      email: 'gopala.manikanta@edusync.com',
+      role: 'Student',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      token: `jwt_token_${Date.now()}`,
+      loginTime: new Date().toLocaleString(),
+    };
+    localStorage.setItem('edusync_session', JSON.stringify(defaultManikantaSession));
+    return defaultManikantaSession;
   });
 
   useEffect(() => {

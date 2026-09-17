@@ -31,7 +31,11 @@ const Login = () => {
     try {
       const res = await login(data.email, data.password, data.rememberMe);
       if (res.success) {
-        navigate('/dashboard');
+        if (res.user?.role === 'Student') {
+          navigate('/student-portal');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } finally {
       setLoading(false);
@@ -131,10 +135,10 @@ const Login = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleQuickDemoFill('rahul@gmail.com', 'student123')}
+                  onClick={() => handleQuickDemoFill('gopala.manikanta@edusync.com', 'student123')}
                   className="px-2.5 py-1 rounded-lg bg-white border border-sky-200 text-sky-800 hover:bg-sky-100 font-medium transition"
                 >
-                  Student (Rahul) Demo
+                  Student (Gopala Manikanta) Demo
                 </button>
               </div>
             </div>

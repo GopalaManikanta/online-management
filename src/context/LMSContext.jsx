@@ -4,6 +4,61 @@ import { toast } from 'react-toastify';
 
 const LMSContext = createContext();
 
+const DEFAULT_INSTRUCTORS = [
+  {
+    id: 'inst_1',
+    name: 'Dr. Sarah Johnson',
+    email: 'sarah.johnson@edusync.com',
+    phone: '+1 (555) 234-5678',
+    experience: '8 Years',
+    specialization: 'React & Frontend Architecture',
+    rating: 4.9,
+    bio: 'Lead Frontend Architect & former Senior Engineer with 8+ years specializing in React, Next.js, and modern UI performance.',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80',
+    assignedCourseIds: ['c1', 'c7'],
+    createdAt: '2026-01-10',
+  },
+  {
+    id: 'inst_2',
+    name: 'Prof. Mike Davis',
+    email: 'mike.davis@edusync.com',
+    phone: '+1 (555) 345-6789',
+    experience: '10 Years',
+    specialization: 'Full Stack & Node.js',
+    rating: 4.8,
+    bio: 'Associate Professor & Full Stack Consultant with a decade of expertise in Node.js, Microservices, and cloud deployments.',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80',
+    assignedCourseIds: ['c2', 'c3'],
+    createdAt: '2026-01-15',
+  },
+  {
+    id: 'inst_3',
+    name: 'Alex Turner',
+    email: 'alex.turner@edusync.com',
+    phone: '+1 (555) 456-7890',
+    experience: '6 Years',
+    specialization: 'Python & Data Science',
+    rating: 4.9,
+    bio: 'Data Scientist & Machine Learning Specialist with hands-on experience building AI models, Pandas analytics pipelines, and neural networks.',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
+    assignedCourseIds: ['c5', 'c6'],
+    createdAt: '2026-02-01',
+  },
+  {
+    id: 'inst_4',
+    name: 'Emily Carter',
+    email: 'emily.carter@edusync.com',
+    phone: '+1 (555) 567-8901',
+    experience: '5 Years',
+    specialization: 'UI/UX Design Systems',
+    rating: 4.7,
+    bio: 'Senior Product Designer crafting enterprise design systems, Figma wireframes, and intuitive user experiences.',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80',
+    assignedCourseIds: ['c4', 'c8'],
+    createdAt: '2026-02-10',
+  },
+];
+
 export const LMSProvider = ({ children }) => {
   const [courses, setCourses] = useState(() => {
     const saved = localStorage.getItem('edusync_courses');
@@ -23,17 +78,49 @@ export const LMSProvider = ({ children }) => {
     return INITIAL_COURSES;
   });
 
+  const MANIKANTA_STUDENT = {
+    id: 's_manikanta',
+    name: 'Gopala Manikanta',
+    email: 'gopala.manikanta@edusync.com',
+    phone: '+91 98765 43210',
+    qualification: 'B.Tech Computer Science & Engineering',
+    address: 'Hyderabad, India',
+    enrollmentDate: '2026-01-10',
+    createdAt: new Date().toISOString(),
+  };
+
   const [students, setStudents] = useState(() => {
     const saved = localStorage.getItem('edusync_students');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (!parsed.some((s) => s.name?.toLowerCase().includes('manikanta'))) {
+            const updated = [MANIKANTA_STUDENT, ...parsed];
+            localStorage.setItem('edusync_students', JSON.stringify(updated));
+            return updated;
+          }
+          return parsed;
+        }
       } catch (e) {
         console.error('Error parsing students from local storage', e);
       }
     }
-    return [];
+    return [MANIKANTA_STUDENT];
+  });
+
+  const [instructors, setInstructors] = useState(() => {
+    const saved = localStorage.getItem('edusync_instructors');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error('Error parsing instructors from local storage', e);
+      }
+    }
+    localStorage.setItem('edusync_instructors', JSON.stringify(DEFAULT_INSTRUCTORS));
+    return DEFAULT_INSTRUCTORS;
   });
 
   const DEFAULT_ENROLLMENTS = [
@@ -41,7 +128,7 @@ export const LMSProvider = ({ children }) => {
       id: 'enr_1',
       studentId: 's1',
       studentName: 'Emily Johnson',
-      studentEmail: 'emily.johnson@x.dummyjson.com',
+      studentEmail: 'emily.johnson@edusync.com',
       studentPhone: '+1 555-0192',
       studentQualification: 'B.Tech CS',
       courseId: 'c1',
@@ -57,7 +144,7 @@ export const LMSProvider = ({ children }) => {
       id: 'enr_2',
       studentId: 's2',
       studentName: 'Michael Williams',
-      studentEmail: 'michael.williams@x.dummyjson.com',
+      studentEmail: 'michael.williams@edusync.com',
       studentPhone: '+1 555-0193',
       studentQualification: 'MCA',
       courseId: 'c2',
@@ -73,7 +160,7 @@ export const LMSProvider = ({ children }) => {
       id: 'enr_3',
       studentId: 's3',
       studentName: 'Sophia Miller',
-      studentEmail: 'sophia.miller@x.dummyjson.com',
+      studentEmail: 'sophia.miller@edusync.com',
       studentPhone: '+1 555-0194',
       studentQualification: 'B.Sc IT',
       courseId: 'c3',
@@ -89,7 +176,7 @@ export const LMSProvider = ({ children }) => {
       id: 'enr_4',
       studentId: 's4',
       studentName: 'James Davis',
-      studentEmail: 'james.davis@x.dummyjson.com',
+      studentEmail: 'james.davis@edusync.com',
       studentPhone: '+1 555-0195',
       studentQualification: 'M.Tech',
       courseId: 'c4',
@@ -105,7 +192,7 @@ export const LMSProvider = ({ children }) => {
       id: 'enr_5',
       studentId: 's5',
       studentName: 'Daniel Brown',
-      studentEmail: 'daniel.brown@x.dummyjson.com',
+      studentEmail: 'daniel.brown@edusync.com',
       studentPhone: '+1 555-0196',
       studentQualification: 'B.E Electronics',
       courseId: 'c5',
@@ -121,7 +208,7 @@ export const LMSProvider = ({ children }) => {
       id: 'enr_6',
       studentId: 's6',
       studentName: 'Olivia Garcia',
-      studentEmail: 'olivia.garcia@x.dummyjson.com',
+      studentEmail: 'olivia.garcia@edusync.com',
       studentPhone: '+1 555-0197',
       studentQualification: 'B.Des UI/UX',
       courseId: 'c6',
@@ -140,11 +227,15 @@ export const LMSProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Ensure saved data has pending & cancelled records, else fallback to full set
-        const hasPending = parsed.some((e) => e.status === 'Pending');
-        const hasCancelled = parsed.some((e) => e.status === 'Cancelled');
-        if (Array.isArray(parsed) && parsed.length >= 4 && hasPending && hasCancelled) {
-          return parsed;
+        // Clean out default hardcoded Manikanta enrollments if present
+        const cleaned = parsed.filter(
+          (e) => !['enr_m1', 'enr_m2', 'enr_m3'].includes(e.id)
+        );
+        const hasPending = cleaned.some((e) => e.status === 'Pending');
+        const hasCancelled = cleaned.some((e) => e.status === 'Cancelled');
+        if (Array.isArray(cleaned) && cleaned.length >= 4 && hasPending && hasCancelled) {
+          localStorage.setItem('edusync_enrollments', JSON.stringify(cleaned));
+          return cleaned;
         }
       } catch (e) {
         console.error('Error parsing enrollments from local storage', e);
@@ -446,13 +537,62 @@ export const LMSProvider = ({ children }) => {
     return true;
   };
 
+  // Instructor CRUD Functions
+  const addInstructor = (instructorData) => {
+    const newInst = {
+      id: `inst_${Date.now()}`,
+      name: instructorData.name,
+      email: instructorData.email,
+      experience: instructorData.experience || '3 Years',
+      specialization: instructorData.specialization || 'Software Engineering',
+      avatar: instructorData.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(instructorData.name)}`,
+      assignedCourseIds: instructorData.assignedCourseIds || [],
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    const updated = [newInst, ...instructors];
+    setInstructors(updated);
+    localStorage.setItem('edusync_instructors', JSON.stringify(updated));
+    addActivity('Instructor Added', `Registered faculty member "${newInst.name}"`);
+    toast.success(`Instructor "${newInst.name}" registered successfully!`);
+    return newInst;
+  };
+
+  const updateInstructor = (id, updatedData) => {
+    const updated = instructors.map((inst) => (inst.id === id ? { ...inst, ...updatedData } : inst));
+    setInstructors(updated);
+    localStorage.setItem('edusync_instructors', JSON.stringify(updated));
+    addActivity('Instructor Updated', `Updated profile for "${updatedData.name || id}"`);
+    toast.success('Instructor details updated successfully!');
+  };
+
+  const deleteInstructor = (id) => {
+    const target = instructors.find((inst) => inst.id === id);
+    const updated = instructors.filter((inst) => inst.id !== id);
+    setInstructors(updated);
+    localStorage.setItem('edusync_instructors', JSON.stringify(updated));
+    addActivity('Instructor Deleted', `Removed faculty member "${target?.name || id}"`);
+    toast.info(`Instructor "${target?.name || 'Selected Instructor'}" deleted.`);
+  };
+
+  const assignCourseToInstructor = (instructorId, courseIds) => {
+    const updated = instructors.map((inst) =>
+      inst.id === instructorId ? { ...inst, assignedCourseIds: courseIds } : inst
+    );
+    setInstructors(updated);
+    localStorage.setItem('edusync_instructors', JSON.stringify(updated));
+    const target = instructors.find((inst) => inst.id === instructorId);
+    addActivity('Courses Assigned', `Assigned course(s) to "${target?.name}"`);
+    toast.success(`Courses assigned to "${target?.name || 'Instructor'}" successfully!`);
+  };
+
   return (
     <LMSContext.Provider
       value={{
         courses,
         students,
         enrollments,
-        instructors: [],
+        instructors,
         activities,
         loading,
         error,
@@ -466,11 +606,15 @@ export const LMSProvider = ({ children }) => {
         updateEnrollment,
         removeEnrollment,
         isAlreadyEnrolled,
+        addInstructor,
+        updateInstructor,
+        deleteInstructor,
+        assignCourseToInstructor,
         addActivity,
         stats: {
           totalCourses: courses.length,
           totalStudents: students.length,
-          totalInstructors: 0,
+          totalInstructors: instructors.length,
           totalEnrollments: enrollments.length,
           completedCourses: enrollments.filter((e) => e.status === 'Completed').length,
           activeEnrollments: enrollments.filter((e) => (e.status || 'Active') === 'Active').length,
