@@ -18,6 +18,9 @@ import EnrollmentsList from './pages/enrollments/EnrollmentsList';
 import InstructorsList from './pages/instructors/InstructorsList';
 import StudentPortal from './pages/students/StudentPortal';
 import LearningProgress from './pages/progress/LearningProgress';
+import AssignmentsQuizzes from './pages/assignments/AssignmentsQuizzes';
+import ReportsAnalytics from './pages/reports/ReportsAnalytics';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 const HomeRedirect = () => {
   const { isAuthenticated, user } = useAuth();
@@ -28,44 +31,48 @@ const HomeRedirect = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <LMSProvider>
-        <Router>
-          <Routes>
-            {/* Default Root */}
-            <Route path="/" element={<HomeRedirect />} />
+    <ErrorBoundary>
+      <AuthProvider>
+        <LMSProvider>
+          <Router>
+            <Routes>
+              {/* Default Root */}
+              <Route path="/" element={<HomeRedirect />} />
 
-            {/* Module 1 Public Authentication Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+              {/* Module 1 Public Authentication Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* Protected Routes */}
-            <Route
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/courses" element={<CoursesList />} />
-              <Route path="/students" element={<StudentsList />} />
-              <Route path="/student-portal" element={<StudentPortal />} />
-              <Route path="/progress" element={<LearningProgress />} />
-              <Route path="/enrollments" element={<EnrollmentsList />} />
-              <Route path="/instructors" element={<InstructorsList />} />
-            </Route>
+              {/* Protected Routes */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/courses" element={<CoursesList />} />
+                <Route path="/students" element={<StudentsList />} />
+                <Route path="/student-portal" element={<StudentPortal />} />
+                <Route path="/progress" element={<LearningProgress />} />
+                <Route path="/enrollments" element={<EnrollmentsList />} />
+                <Route path="/reports" element={<ReportsAnalytics />} />
+                <Route path="/instructors" element={<InstructorsList />} />
+                <Route path="/assignments" element={<AssignmentsQuizzes />} />
+              </Route>
 
-            {/* Catch-All Fallback */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </Router>
+              {/* Catch-All Fallback */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Router>
 
-        {/* Global Toast Notifications */}
-        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      </LMSProvider>
-    </AuthProvider>
+          {/* Global Toast Notifications */}
+          <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+        </LMSProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
