@@ -73,41 +73,50 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('edusync_session', JSON.stringify(updatedAdmin));
           return updatedAdmin;
         }
-        // If session was Rahul or missing Manikanta, upgrade session to Gopala Manikanta
-        if (parsed.name === 'Rahul Sharma') {
-          const manikantaSession = {
-            id: 'usr_manikanta',
-            name: 'Gopala Manikanta',
-            email: 'gopala.manikanta@edusync.com',
-            role: 'Student',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-            token: `jwt_token_${Date.now()}`,
-            loginTime: new Date().toLocaleString(),
-          };
-          localStorage.setItem('edusync_session', JSON.stringify(manikantaSession));
-          return manikantaSession;
-        }
         return parsed;
       } catch (e) {
         console.error('Failed to parse active session', e);
+        localStorage.removeItem('edusync_session');
+        return null;
       }
     }
-    const defaultManikantaSession = {
-      id: 'usr_manikanta',
-      name: 'Gopala Manikanta',
-      email: 'gopala.manikanta@edusync.com',
-      role: 'Student',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      token: `jwt_token_${Date.now()}`,
-      loginTime: new Date().toLocaleString(),
-    };
-    localStorage.setItem('edusync_session', JSON.stringify(defaultManikantaSession));
-    return defaultManikantaSession;
+    return null;
   });
 
   useEffect(() => {
     localStorage.setItem('edusync_users', JSON.stringify(users));
   }, [users]);
+
+  // Sync user session state with localStorage deletion / clearing in real-time
+  useEffect(() => {
+    const syncSessionFromStorage = () => {
+      const session = localStorage.getItem('edusync_session');
+      if (!session) {
+        setUser(null);
+      } else {
+        try {
+          setUser(JSON.parse(session));
+        } catch {
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', syncSessionFromStorage);
+
+    // Monitor for local storage deletion within current window
+    const interval = setInterval(() => {
+      const session = localStorage.getItem('edusync_session');
+      if (!session && user !== null) {
+        setUser(null);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener('storage', syncSessionFromStorage);
+      clearInterval(interval);
+    };
+  }, [user]);
 
   // Login handler
   const login = async (email, password, rememberMe = false) => {

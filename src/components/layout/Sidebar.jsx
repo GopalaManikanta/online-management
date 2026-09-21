@@ -9,7 +9,9 @@ import {
   LogOut,
   X,
   UserCheck,
-  TrendingUp
+  TrendingUp,
+  FileText,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -23,13 +25,16 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     ? [
         { name: 'My Learning Portal', path: '/student-portal', icon: UserCheck },
         { name: 'Browse Courses', path: '/courses', icon: BookOpen },
+        { name: 'Assignments & Quizzes', path: '/assignments', icon: FileText },
       ]
     : [
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
         { name: 'Courses', path: '/courses', icon: BookOpen },
         { name: 'Students', path: '/students', icon: Users },
+        { name: 'Assignments & Quizzes', path: '/assignments', icon: FileText },
         { name: 'Learning Progress', path: '/progress', icon: TrendingUp },
         { name: 'Enrollments', path: '/enrollments', icon: BookmarkCheck },
+        { name: 'Reports & Analytics', path: '/reports', icon: BarChart3 },
         { name: 'Instructors', path: '/instructors', icon: GraduationCap },
       ];
 
